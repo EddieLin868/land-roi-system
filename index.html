@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="土開投報">
+    <title>土地開發投報與敏感性分析 (加密升級版)</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #334155;
+            --accent: #2563eb;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --border: #cbd5e1;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --success-border: #22c55e;
+            --alert-text: #991b1b;
+        }
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", Roboto, sans-serif;
+            background-color: var(--bg); color: var(--primary); margin: 0; padding: 10px; font-size: 15px;
+            -webkit-text-size-adjust: 100%; -webkit-user-select: none; user-select: none;
+        }
+
+        /* ==========================================
+           🚨 全新功能：系統登入鎖定畫面 
+           ========================================== */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0f172a; /* 深色背景 */
+            z-index: 99999; /* 絕對置頂 */
+            display: flex; justify-content: center; align-items: center;
+        }
+        .login-box {
+            background: #ffffff; padding: 40px 30px; border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            width: 90%; max-width: 380px; text-align: center;
+        }
+        .login-box h2 {
+            margin-top: 0; color: #0f172a; border: none; padding-bottom: 5px;
+            font-size: 1.8rem; justify-content: center;
+        }
+        .login-box p {
+            color: #64748b; margin-bottom: 25px; font-size: 1rem; font-weight: bold;
+        }
+        .login-box input {
+            width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 8px;
+            text-align: center; letter-spacing: 5px; margin-bottom: 15px;
+            transition: all 0.2s; font-size: 16px; font-weight: 900;
+            -webkit-user-select: auto; user-select: auto;
+        }
+        .login-box input:focus {
+            border-color: var(--accent); outline: none;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+        }
+        .login-btn {
+            width: 100%; padding: 15px; background: var(--accent); color: white;
+            border: none; border-radius: 8px; font-size: 1.15rem; font-weight: 900;
+            cursor: pointer; transition: background 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+        }
+        .login-btn:hover { background: #1d4ed8; }
+        .login-error {
+            color: #ef4444; font-size: 0.95rem; margin-top: 15px;
+            font-weight: 900; display: none;
+        }
+        /* ========================================== */
+        
+        /* 🚨 共用彈出遮罩 (自訂對話框) */
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(15, 23, 42, 0.9); z-index: 999999;
+            display: none; justify-content: center; align-items: center;
+        }
+        .custom-modal-box {
+            background: #ffffff; padding: 25px; border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); width: 90%; max-width: 400px; text-align: center;
+        }
+        .custom-modal-box h3 { margin-top: 0; color: #0f172a; font-size: 1.4rem; margin-bottom: 10px; }
+        .custom-modal-box p { color: #475569; margin-bottom: 20px; font-size: 1rem; line-height: 1.5; }
+        .custom-modal-box input {
+            width: 100%; padding: 12px; border: 2px solid #cbd5e1; border-radius: 8px;
+            font-size: 16px; margin-bottom: 20px; outline: none; transition: all 0.2s; font-family: inherit;
+            -webkit-user-select: auto; user-select: auto;
+        }
+        .custom-modal-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
+        .modal-btns { display: flex; gap: 10px; justify-content: center; }
+        .btn-modal-cancel { flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        .btn-modal-confirm { flex: 1; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        .btn-modal-confirm.danger { background: #ef4444; }
+
+        /* 📂 歷史專案紀錄畫面 */
+        #history-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.9); z-index: 99998; display: none; justify-content: center; align-items: center; }
+        .history-box { background: #ffffff; padding: 25px; border-radius: 16px; width: 95%; max-width: 650px; max-height: 90vh; display: flex; flex-direction: column; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--border); padding-bottom: 15px; margin-bottom: 15px; }
+        .history-header h2 { margin: 0; font-size: 1.5rem;}
+        .history-close { background: none; border: none; font-size: 2rem; cursor: pointer; color: var(--secondary); line-height: 1; }
+        .history-list { overflow-y: auto; flex: 1; padding-right: 5px; margin-bottom: 15px; border-bottom: 1px solid var(--border); }
+        .history-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:10px;}
+        .history-info h4 { margin: 0 0 5px 0; color: var(--accent); font-size: 1.1rem; }
+        .history-info p { margin: 0; color: var(--secondary); font-size: 0.85rem; }
+        .history-actions { display: flex; gap: 8px; }
+        .btn-load { background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-del { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        .backup-controls { display: flex; justify-content: center; margin-top: 5px; }
+        .btn-excel { background: #059669; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+
+        /* 一般佈局 */
+        .container { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1750px; margin: 0 auto; }
+        @media (min-width: 1024px) { .container { grid-template-columns: 580px 1fr; padding: 15px; } }
+        
+        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 20px; border: 1px solid var(--border); }
+        h2 { margin-top: 0; font-size: 1.4rem; color: var(--primary); border-bottom: 3px solid var(--border); padding-bottom: 12px; }
+        
+        details.param-group { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; }
+        details.param-group summary { font-size: 1.15rem; font-weight: 800; color: var(--accent); padding: 15px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; background: #ffffff; border-left: 6px solid var(--accent); }
+        details.param-group summary::-webkit-details-marker { display: none; }
+        details.param-group summary::after { content: "▼"; font-size: 0.9rem; color: var(--secondary); }
+        details.param-group[open] summary::after { content: "▲"; }
+        .param-body { padding: 15px; background: #ffffff; }
+        
+        .input-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .input-group label { flex: 1; color: var(--secondary); font-weight: 700; font-size: 1.05rem; }
+        .input-wrapper { display: flex; gap: 8px; justify-content: flex-end; max-width: 65%; }
+        .input-group input { width: 100%; min-width: 60px; max-width: 140px; padding: 10px; border: 2px solid #94a3b8; border-radius: 8px; text-align: right; font-size: 16px !important; font-weight: 900; color: #0f172a; -webkit-user-select: auto; user-select: auto; }
+        .input-readonly { background-color: #f1f5f9 !important; color: #475569 !important; cursor: not-allowed; }
+        .locked-field { border: none !important; background: transparent !important; padding-right: 0 !important; color: #64748b !important; box-shadow: none !important; pointer-events: none; }
+
+        .result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        @media (min-width: 768px) { .result-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; } }
+        .result-box { background: #f8fafc; border: 2px solid var(--border); padding: 15px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .result-box.highlight-box { background: #f0fdf4; border-color: #bbf7d0; }
+        .result-box .label { font-size: 0.9rem; color: var(--secondary); margin-bottom: 6px; font-weight: 800; }
+        .result-box .value { font-size: 1.3rem; font-weight: 900; color: var(--accent); }
+        .result-box .sub-value { font-size: 0.85rem; color: var(--secondary); margin-top: 4px; font-weight: 600; }
+        .result-box.highlight-box .value { color: #059669; }
+        
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 500px; }
+        th, td { border: 1px solid var(--border); padding: 10px 4px; text-align: center; font-weight: bold; }
+        th { background-color: #f1f5f9; color: var(--secondary); font-size: 1rem; }
+        .highlight { background-color: var(--success-bg) !important; color: var(--success-text) !important; border: 2px solid var(--success-border) !important; }
+        
+        .action-btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 1.2rem; font-weight: 900; cursor: pointer; }
+        .btn-blue { background-color: var(--accent); color: white; margin-top: 15px; }
+        
+        .pdf-export-panel { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;}
+        .pdf-export-panel h3 { margin: 0 0 5px 0; font-size: 1.3rem; }
+        .pdf-export-panel p { margin: 0; font-size: 0.95rem; opacity: 0.9; }
+        .btn-panel-wrap { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        @media (min-width: 768px) { .btn-panel-wrap { width: auto; min-width: 220px; } }
+        .pdf-btn-main { background-color: #ffffff; color: #059669; border: none; padding: 12px; border-radius: 8px; font-size: 1.1rem; font-weight: 900; cursor: pointer; }
+        .btn-history { background-color: #f1f5f9; color: #0f172a; }
+
+        details.detail-logs summary { list-style: none; padding: 15px; background: #f1f5f9; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; color: var(--accent); }
+        
+        /* 🚨 純淨報告模式 */
+        .report-mode-banner { display: none; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 15px; border-radius: 12px; margin-bottom: 25px; text-align: center; position: sticky; top: 10px; z-index: 100;}
+        body.report-mode { background: #ffffff; }
+        body.report-mode .left-panel, body.report-mode .pdf-export-panel, body.report-mode details.detail-logs { display: none !important; }
+        body.report-mode .container { display: block; max-width: 1000px; padding: 0; }
+        body.report-mode .card { box-shadow: none; border: none; padding: 0 10px; }
+        body.report-mode .report-mode-banner { display: block; }
+        body.report-mode .print-header { display: block !important; text-align: center; margin-bottom: 25px; padding-top: 20px;}
+        body.report-mode .print-header h1 { margin: 0; font-size: 20pt; color: #0f172a; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+        body.report-mode .print-header p { margin: 10px 0 0 0; color: #475569; font-size: 12pt; }
+        
+        /* 隱藏的工具列 */
+        #hidden-clipboard { position: absolute; left: -9999px; top: -9999px; }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div class="login-box">
+        <h2>🔒 系統授權登入</h2>
+        <p>土地開發投報與敏感性分析系統</p>
+        <input type="password" id="sysPwd" placeholder="請輸入授權碼">
+        <button class="login-btn" onclick="checkPassword()">進入系統</button>
+        <div id="loginError" class="login-error">授權碼錯誤，請重新輸入！</div>
+    </div>
+</div>
+
+<div class="custom-modal-overlay" id="customAlert">
+    <div class="custom-modal-box">
+        <h3 id="customAlertTitle">提示</h3>
+        <p id="customAlertMsg"></p>
+        <button class="btn-modal-confirm" onclick="closeCustomAlert()">我知道了</button>
+    </div>
+</div>
+
+<div class="custom-modal-overlay" id="customConfirm">
+    <div class="custom-modal-box">
+        <h3 id="customConfirmTitle">確認</h3>
+        <p id="customConfirmMsg"></p>
+        <div class="modal-btns">
+            <button class="btn-modal-cancel" onclick="closeCustomConfirm(false)">取消</button>
+            <button class="btn-modal-confirm danger" onclick="closeCustomConfirm(true)">確定</button>
+        </div>
+    </div>
+</div>
+
+<div class="custom-modal-overlay" id="customPrompt">
+    <div class="custom-modal-box">
+        <h3 id="customPromptTitle">請輸入</h3>
+        <p id="customPromptMsg"></p>
+        <input type="text" id="customPromptInput">
+        <div class="modal-btns">
+            <button class="btn-modal-cancel" onclick="closeCustomPrompt(null)">取消</button>
+            <button class="btn-modal-confirm" onclick="closeCustomPrompt(document.getElementById('customPromptInput').value)">確定</button>
+        </div>
+    </div>
+</div>
+
+<div id="history-overlay">
+    <div class="history-box">
+        <div class="history-header">
+            <h2>📂 歷史專案紀錄</h2>
+            <button class="history-close" onclick="closeHistory()">✖</button>
+        </div>
+        <div class="history-list" id="historyListContainer"></div>
+        
+        <div style="border-top: 2px dashed var(--border); padding-top: 15px;">
+            <div class="backup-controls">
+                <button class="btn-excel" onclick="exportToExcel()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    匯出 Excel 報表 (複製表格)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<textarea id="hidden-clipboard"></textarea>
+
+<div class="container" id="main-content" style="filter: blur(8px); pointer-events: none; opacity: 0.5;">
+    
+    <div class="report-mode-banner" onclick="toggleReportMode()">
+        <h3>✅ 報表模式已啟動 (點此退出)</h3>
+        <p>請使用手機截圖功能 ➡️ 點選預覽 ➡️ 選「整頁」 ➡️ 儲存為 PDF</p>
+    </div>
+
+    <div style="display:none" class="print-header report-show">
+        <h1>土地開發專案 投資效益分析報告</h1>
+        <p id="printProjectNameDisplay"></p>
+        <p id="printDateDisplay">產出日期：</p>
+    </div>
+
+    <div class="left-panel">
+        <div class="card" style="padding: 15px;">
+            <h2 style="padding-left:10px;">📝 專案參數設定</h2>
+            
+            <details class="param-group" open>
+                <summary>一、土地與基本法規</summary>
+                <div class="param-body">
+                    <div class="input-group">
+                        <label>土地面積 (坪)</label>
+                        <div class="input-wrapper"><input type="number" id="landArea" value="859.24" step="0.01" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>土地單價 (萬/坪)</label>
+                        <div class="input-wrapper"><input type="number" id="landPrice" value="68" step="1" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>建蔽率 (%)</label>
+                        <div class="input-wrapper"><input type="number" id="bcr" value="50" step="1" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>容積率 (%)</label>
+                        <div class="input-wrapper"><input type="number" id="far" value="165.92" step="0.01" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>地上層 / 地下層</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="agFloors" value="15" oninput="calculate()">
+                            <input type="number" id="ugFloors" value="2" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>開挖率 (%)</label>
+                        <div class="input-wrapper"><input type="number" id="excavationRate" value="80" step="1" oninput="calculate()"></div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="param-group">
+                <summary>二、容積獎勵設定</summary>
+                <div class="param-body">
+                    <div class="input-group">
+                        <label>容移獎勵 (%)</label>
+                        <div class="input-wrapper"><input type="number" id="volTransferPct" value="0" step="0.01" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>開放空間獎勵 (%)</label>
+                        <div class="input-wrapper"><input type="number" id="openSpacePct" value="0" step="0.1" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>時程獎勵 (%)</label>
+                        <div class="input-wrapper"><input type="number" id="schedulePct" value="7.19" step="0.01" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>規模獎勵 (%)</label>
+                        <div class="input-wrapper"><input type="number" id="scalePct" value="8" step="0.1" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>危老獎勵 (%)</label>
+                        <div class="input-wrapper"><input type="number" id="oldDangerPct" value="0" step="0.01" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>獎勵容積合計 (%)</label>
+                        <div class="input-wrapper"><input type="text" id="totalBonusPct" class="input-readonly" readonly></div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="param-group">
+                <summary>三、產品定價與車位</summary>
+                <div class="param-body">
+                    <div class="input-group">
+                        <label>住宅單價 (萬/坪)</label>
+                        <div class="input-wrapper"><input type="number" id="housePrice" value="65" step="1" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>店面坪數 / 單價</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="shopArea" value="0" oninput="calculate()">
+                            <input type="number" id="shopPrice" value="90" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>車位計算基準(坪/個)</label>
+                        <div class="input-wrapper"><input type="number" id="parkingDivisor" value="12.35" step="0.01" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>停車坪效 (坪/個)</label>
+                        <div class="input-wrapper"><input type="number" id="parkingEfficiency" value="11.3" step="0.1" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>實設車位數 (自動)</label>
+                        <div class="input-wrapper"><input type="number" id="parkingCount" class="input-readonly" readonly></div>
+                    </div>
+                    <div class="input-group">
+                        <label>車位單價 (萬/個)</label>
+                        <div class="input-wrapper"><input type="number" id="parkingPrice" value="230" step="1" oninput="calculate()"></div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="param-group">
+                <summary>四、營造、成本與稅賦</summary>
+                <div class="param-body">
+                    <div class="input-group">
+                        <label>營造單坪成本 (萬)</label>
+                        <div class="input-wrapper"><input type="number" id="buildCost" value="16" step="0.01" oninput="calculate()"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>建築設計費率 (%)</label>
+                        <div class="input-wrapper"><input type="text" value="固定 5" class="locked-field" readonly></div>
+                    </div>
+                    <div class="input-group">
+                        <label>銷售/管理 費率(%)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="salesAgencyRate" value="6" step="0.5" oninput="calculate()">
+                            <input type="number" id="mgmtFeeRate" value="6" step="0.01" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>拆除費(萬) / 佣金(%)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="demolitionUnitPrice" value="0" oninput="calculate()">
+                            <input type="number" id="landCommissionRate" value="1" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>公告現值(元)/容移(%)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="assessedValue" value="106371" style="max-width: 140px;" oninput="calculate()">
+                            <input type="number" id="volPurchaseRate" value="149.30" step="0.01" style="max-width: 90px;" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>土增調漲 / 物價(%)</label>
+                        <div class="input-wrapper">
+                            <input type="text" value="固 5" class="locked-field" readonly>
+                            <input type="text" value="固 102" class="locked-field" readonly>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label style="color:var(--alert-text)">營所稅 / 未分配 (%)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="incomeTaxRate" value="20" step="1" oninput="calculate()">
+                            <input type="number" id="undistributedTaxRate" value="5" step="1" oninput="calculate()">
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="param-group">
+                <summary>五、時間軸與銷售進度</summary>
+                <div class="param-body">
+                    <div class="input-group">
+                        <label>總工期 (自動)</label>
+                        <div class="input-wrapper"><input type="text" id="totalConstDisplay" class="input-readonly" readonly></div>
+                    </div>
+                    <div class="input-group">
+                        <label>總期數 / 開工月</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="totalMonthsDisplay" class="input-readonly" readonly>
+                            <input type="text" id="startMonthDisplay" class="input-readonly" readonly>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>建融貸款期數 (月)</label>
+                        <div class="input-wrapper"><input type="text" id="buildLoanMonthsDisplay" class="input-readonly" readonly></div>
+                    </div>
+                    <div class="input-group">
+                        <label>銷售成數:開工/完工</label>
+                        <div class="input-wrapper">
+                            <input type="text" value="固 20" class="locked-field" readonly>
+                            <input type="text" value="固 80" class="locked-field" readonly>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>開工收款:簽約/工程/交屋</label>
+                        <div class="input-wrapper" style="gap:2px;">
+                            <input type="text" value="10" class="locked-field" style="min-width:30px; padding:5px" readonly>
+                            <input type="text" value="10" class="locked-field" style="min-width:30px; padding:5px" readonly>
+                            <input type="text" value="80" class="locked-field" style="min-width:30px; padding:5px" readonly>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="param-group">
+                <summary>六、融資條件 (土/建)</summary>
+                <div class="param-body">
+                    <div class="input-group">
+                        <label>土融:前成/後成/利率</label>
+                        <div class="input-wrapper" style="gap:4px;">
+                            <input type="number" id="landLoanPrePct" value="40" style="min-width:40px; padding:5px" oninput="calculate()">
+                            <input type="number" id="landLoanPostPct" value="50" style="min-width:40px; padding:5px" oninput="calculate()">
+                            <input type="number" id="landLoanRate" value="3.5" step="0.01" style="min-width:60px; padding:5px" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>建融: 成數 / 利率</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="buildLoanPct" value="50" oninput="calculate()">
+                            <input type="number" id="buildLoanRate" value="3.625" step="0.001" oninput="calculate()">
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="param-group">
+                <summary>七、矩陣分析級距</summary>
+                <div class="param-body">
+                    <div class="input-group">
+                        <label>土價級距 / 房價級距</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="landStep" value="2" oninput="calculate()">
+                            <input type="number" id="houseStep" value="2" oninput="calculate()">
+                        </div>
+                    </div>
+                </div>
+            </details>
+            
+            <button class="action-btn btn-blue" onclick="calculate()">🚀 手動重新計算</button>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        
+        <div class="pdf-export-panel">
+            <div style="flex: 1;">
+                <h3>💾 專案建檔與匯出</h3>
+                <p>因平台限制，請儲存專案後進入<b>「純淨模式」</b>使用手機整頁截圖 PDF。</p>
+            </div>
+            <div class="btn-panel-wrap">
+                <button class="pdf-btn-main" onclick="triggerSaveProject()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    儲存專案 ＆ 產生報告
+                </button>
+                <button class="pdf-btn-main btn-history" onclick="openHistory()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    📂 歷史專案與匯出
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>一、基準試算結果</h2>
+            <div class="result-grid">
+                <div class="result-box highlight-box">
+                    <div class="label">總建坪面積 (TCA)</div>
+                    <div class="value" id="resTcaPing">0.00 坪</div>
+                    <div class="sub-value" id="resTcaM2">0.00 ㎡</div>
+                </div>
+                <div class="result-box highlight-box">
+                    <div class="label">總售坪面積 (TSA)</div>
+                    <div class="value" id="resTsaPing">0.00 坪</div>
+                    <div class="sub-value" id="resTsaM2">0.00 ㎡</div>
+                </div>
+                <div class="result-box highlight-box">
+                    <div class="label">坪效比 (總 / 不含車)</div>
+                    <div class="value" id="resEr">0.00</div>
+                    <div class="sub-value" id="resBsaEr">0.00</div>
+                </div>
+                <div class="result-box">
+                    <div class="label">住宅售坪 / 車位售坪</div>
+                    <div class="value" id="resHouseArea" style="font-size:1.15rem">0.00 坪</div>
+                    <div class="sub-value" id="resParkArea" style="color:var(--primary); font-weight: bold;">車位: 0.00 坪</div>
+                </div>
+                <div class="result-box">
+                    <div class="label">總銷金額估算</div>
+                    <div class="value" id="resTotalRev">0.00 億</div>
+                </div>
+                <div class="result-box">
+                    <div class="label">總成本估算</div>
+                    <div class="value" id="resTotalCost">0.00 億</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="display:flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+                二、敏感性分析矩陣
+                <span style="font-size: 0.85rem; font-weight: bold; color: #166534; background: #dcfce7; padding: 4px 8px; border-radius: 6px; -webkit-print-color-adjust: exact;">
+                    達標條件：淨利≥15% 且 稅後IRR≥12%
+                </span>
+            </h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr id="matrixHeadTr"></tr>
+                    </thead>
+                    <tbody id="matrixBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <details class="detail-logs">
+                <summary>
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 15V9a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2z"></path><path d="M5 15H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"></path></svg>
+                    點擊展開：對帳與財務明細
+                </summary>
+                <div id="calcDetails" style="margin-top: 15px;">
+                    </div>
+            </details>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // 🚨 核心防護
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('dragstart', event => event.preventDefault());
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) || (e.ctrlKey && (e.key === 'U' || e.key === 'u')) || (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'i')) || (e.metaKey && (e.key === 'U' || e.key === 'u'))) { e.preventDefault(); }
+    });
+
+    // ==========================================
+    // 🛠️ 自訂對話框系統
+    // ==========================================
+    let promptCallback = null;
+    let confirmCallback = null;
+
+    function showCustomAlert(title, msg) {
+        document.getElementById('customAlertTitle').innerText = title;
+        document.getElementById('customAlertMsg').innerText = msg;
+        document.getElementById('customAlert').style.display = 'flex';
+    }
+    function closeCustomAlert() {
+        document.getElementById('customAlert').style.display = 'none';
+    }
+
+    function showCustomConfirm(title, msg, callback) {
+        document.getElementById('customConfirmTitle').innerText = title;
+        document.getElementById('customConfirmMsg').innerText = msg;
+        confirmCallback = callback;
+        document.getElementById('customConfirm').style.display = 'flex';
+    }
+    function closeCustomConfirm(result) {
+        document.getElementById('customConfirm').style.display = 'none';
+        if(confirmCallback) confirmCallback(result);
+    }
+
+    function showCustomPrompt(title, msg, defaultVal, callback) {
+        document.getElementById('customPromptTitle').innerText = title;
+        document.getElementById('customPromptMsg').innerText = msg;
+        document.getElementById('customPromptInput').value = defaultVal || '';
+        promptCallback = callback;
+        document.getElementById('customPrompt').style.display = 'flex';
+        setTimeout(() => document.getElementById('customPromptInput').focus(), 100);
+    }
+    function closeCustomPrompt(val) {
+        document.getElementById('customPrompt').style.display = 'none';
+        if(promptCallback) promptCallback(val);
+    }
+
+    // 🔑 密碼檢查 (解鎖功能)
+    function checkPassword() {
+        const pwd = document.getElementById('sysPwd').value;
+        if (pwd === "89369020") {
+            // 密碼正確：隱藏登入遮罩，並解除主內容的模糊與點擊限制
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('main-content').style.filter = 'none';
+            document.getElementById('main-content').style.pointerEvents = 'auto';
+            document.getElementById('main-content').style.opacity = '1';
+        } else {
+            // 密碼錯誤：顯示錯誤訊息，清空輸入框
+            document.getElementById('loginError').style.display = 'block';
+            document.getElementById('sysPwd').value = '';
+        }
+    }
+    document.getElementById('sysPwd').addEventListener('keypress', function(e) { if (e.key === 'Enter') checkPassword(); });
+
+    // 📊 共用輔助函數
+    function getVal(id) { let el = document.getElementById(id); return el && !isNaN(parseFloat(el.value)) ? parseFloat(el.value) : 0; }
+    const fmt = (val) => isNaN(val) ? "0.00" : Number(val).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const fmtYi = (val) => isNaN(val) ? "0.00" : (Number(val) / 10000).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    function copyToClipboardSafe(text) {
+        let ta = document.getElementById('hidden-clipboard');
+        ta.value = text; ta.select(); ta.setSelectionRange(0, 999999);
+        try { document.execCommand('copy'); return true; } catch(e) { return false; }
+    }
+
+    // 🚨 純淨報告模式
+    window.toggleReportMode = function() {
+        const body = document.body;
+        if (body.classList.contains('report-mode')) {
+            body.classList.remove('report-mode');
+            document.getElementById('printProjectNameDisplay').innerText = "";
+        } else {
+            body.classList.add('report-mode');
+        }
+    }
+
+    // 💾 專案管理
+    const INPUT_FIELDS = [
+        'landArea', 'landPrice', 'bcr', 'far', 'agFloors', 'ugFloors', 'excavationRate',
+        'volTransferPct', 'openSpacePct', 'schedulePct', 'scalePct', 'oldDangerPct',
+        'housePrice', 'shopArea', 'shopPrice', 'parkingDivisor', 'parkingEfficiency', 'parkingPrice',
+        'buildCost', 'salesAgencyRate', 'mgmtFeeRate', 'demolitionUnitPrice', 'landCommissionRate',
+        'assessedValue', 'volPurchaseRate', 'incomeTaxRate', 'undistributedTaxRate',
+        'landLoanPrePct', 'landLoanPostPct', 'landLoanRate', 'buildLoanPct', 'buildLoanRate',
+        'landStep', 'houseStep'
+    ];
+
+    window.triggerSaveProject = function() {
+        let today = new Date();
+        let defaultName = "專案_" + today.getFullYear() + (today.getMonth()+1).toString().padStart(2,'0') + today.getDate().toString().padStart(2,'0');
+        
+        showCustomPrompt("💾 儲存專案", "請輸入要儲存的「專案名稱」：", defaultName, function(projectName) {
+            if (projectName === null || projectName.trim() === "") return;
+            
+            showCustomPrompt("👤 專案人員", "請輸入「專案人員」名稱：", "未指定", function(personName) {
+                if (personName === null) return; 
+
+                let p = {
+                    landArea: getVal('landArea'), bcr: getVal('bcr'), far: getVal('far'), 
+                    ugFloors: getVal('ugFloors'), excavationRate: getVal('excavationRate'),
+                    volTransferPct: getVal('volTransferPct'), openSpacePct: getVal('openSpacePct'), schedulePct: getVal('schedulePct'), scalePct: getVal('scalePct'), oldDangerPct: getVal('oldDangerPct'),
+                    totalMonths: parseInt(document.getElementById('totalMonthsDisplay').value) || 0,
+                    startMonth: parseInt(document.getElementById('startMonthDisplay').value) || 0,
+                    buildLoanMonths: parseInt(document.getElementById('buildLoanMonthsDisplay').value) || 0,
+                    totalConstMonths: parseInt(document.getElementById('totalConstDisplay').value) || 0,
+                    shopArea: getVal('shopArea'), shopPrice: getVal('shopPrice'),
+                    parkingDivisor: getVal('parkingDivisor'), parkingEfficiency: getVal('parkingEfficiency'), parkingPrice: getVal('parkingPrice'),
+                    buildCost: getVal('buildCost'), demolitionUnitPrice: getVal('demolitionUnitPrice'), landCommissionRate: getVal('landCommissionRate'),
+                    designFeeRate: 5, salesAgencyRate: getVal('salesAgencyRate'), mgmtFeeRate: getVal('mgmtFeeRate'), 
+                    assessedValue: getVal('assessedValue'), volPurchaseRate: getVal('volPurchaseRate'),
+                    priceIndex: 102, assessedIncrease: 5, incomeTaxRate: getVal('incomeTaxRate'), undistributedTaxRate: getVal('undistributedTaxRate'),
+                    landLoanPrePct: getVal('landLoanPrePct'), landLoanPostPct: getVal('landLoanPostPct'), landLoanRate: getVal('landLoanRate'),
+                    buildLoanPct: getVal('buildLoanPct'), buildLoanRate: getVal('buildLoanRate')
+                };
+                
+                let areaM2 = p.landArea > 0 ? (p.landArea / 0.3025) : 0; 
+                let rawHoldingYears = p.totalMonths > 0 ? (p.totalMonths / 12) : 0;
+                let holdingYearsCalc = Math.floor(rawHoldingYears); 
+                if (holdingYearsCalc <= 0) {
+                    p.calcLandTax = 0;
+                } else {
+                    let futureAssessed = p.assessedValue * Math.pow(1 + (p.assessedIncrease / 100), holdingYearsCalc);
+                    let adjustedBase = p.assessedValue * (p.priceIndex / 100);
+                    let landTaxIncrement = (futureAssessed - adjustedBase) * areaM2;
+                    p.calcLandTax = landTaxIncrement > 0 ? (landTaxIncrement * 0.20) / 10000 : 0; 
+                }
+                
+                p.parkingCount = p.parkingDivisor > 0 ? Math.floor((areaM2 * (p.excavationRate / 100) * p.ugFloors * 0.3025) / p.parkingDivisor) : 0;
+
+                let metrics = calculateMetrics(getVal('landPrice'), getVal('housePrice'), p);
+
+                let projectData = {
+                    id: Date.now().toString(),
+                    name: projectName.trim(),
+                    person: personName.trim(), 
+                    date: today.toLocaleString('zh-TW'),
+                    np: metrics.netProfitPct.toFixed(2), 
+                    irr: metrics.irrAfterTax.toFixed(2),         
+                    inputs: {}
+                };
+                
+                INPUT_FIELDS.forEach(id => {
+                    let el = document.getElementById(id);
+                    if(el) projectData.inputs[id] = el.value;
+                });
+
+                let history = JSON.parse(localStorage.getItem('landDevProjects') || '[]');
+                history.unshift(projectData); 
+                localStorage.setItem('landDevProjects', JSON.stringify(history));
+
+                document.getElementById('printProjectNameDisplay').innerText = `專案名稱：${projectData.name} ｜ 專案人員：${projectData.person}`;
+                document.getElementById('printDateDisplay').innerText = "產出日期：" + today.toLocaleDateString('zh-TW');
+                
+                window.toggleReportMode();
+                window.scrollTo(0, 0);
+            });
+        });
+    }
+
+    window.openHistory = function() {
+        let history = JSON.parse(localStorage.getItem('landDevProjects') || '[]');
+        let container = document.getElementById('historyListContainer');
+        container.innerHTML = '';
+
+        if (history.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#64748b; margin-top:30px;">尚無任何歷史專案紀錄。</p>';
+        } else {
+            history.forEach(proj => {
+                let pName = proj.person ? proj.person : "未指定";
+                container.innerHTML += `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <h4>📄 ${proj.name} <span style="font-size:0.85rem; color:#64748b;">(${pName})</span></h4>
+                            <p>時間: ${proj.date}</p>
+                        </div>
+                        <div class="history-actions">
+                            <button class="btn-load" onclick="window.loadProject('${proj.id}')">載入</button>
+                            <button class="btn-del" onclick="window.deleteProject('${proj.id}')">刪除</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        document.getElementById('history-overlay').style.display = 'flex';
+    }
+
+    window.closeHistory = function() { document.getElementById('history-overlay').style.display = 'none'; }
+
+    window.loadProject = function(id) {
+        let history = JSON.parse(localStorage.getItem('landDevProjects') || '[]');
+        let proj = history.find(p => p.id === id);
+        if (proj && proj.inputs) {
+            INPUT_FIELDS.forEach(fieldId => {
+                if (proj.inputs[fieldId] !== undefined && document.getElementById(fieldId)) {
+                    document.getElementById(fieldId).value = proj.inputs[fieldId];
+                }
+            });
+            window.calculate();
+            window.closeHistory();
+            showCustomAlert('成功', `✅ 已載入專案：「${proj.name}」`);
+        }
+    }
+
+    window.deleteProject = function(id) {
+        showCustomConfirm('警告', '確定要刪除這筆專案嗎？刪除後無法復原。', function(yes) {
+            if(yes) {
+                let history = JSON.parse(localStorage.getItem('landDevProjects') || '[]');
+                history = history.filter(p => p.id !== id);
+                localStorage.setItem('landDevProjects', JSON.stringify(history));
+                window.openHistory(); 
+            }
+        });
+    }
+
+    // 🚀 複製 Excel 報表
+    window.exportToExcel = function() {
+        let history = JSON.parse(localStorage.getItem('landDevProjects') || '[]');
+        if (history.length === 0) return showCustomAlert('提示', '目前沒有任何專案可供匯出。');
+
+        const headerMap = {
+            'name': '專案名稱', 'person': '專案人員', 'date': '儲存時間', 'landArea': '土地面積(坪)', 'landPrice': '土地單價(萬)',
+            'far': '容積率(%)', 'volTransferPct': '容移(%)', 'housePrice': '住宅單價(萬)', 'buildCost': '營造單坪(萬)', 
+            'volPurchaseRate': '容移購入(%)', 'np': '淨利率(%)', 'irr': '稅後IRR(%)'
+        };
+        let exportKeys = ['name', 'person', 'date', 'landArea', 'landPrice', 'far', 'volTransferPct', 'housePrice', 'buildCost', 'volPurchaseRate', 'np', 'irr'];
+
+        let csv = exportKeys.map(k => headerMap[k]).join('\t') + '\n';
+        history.forEach(proj => {
+            let row = exportKeys.map(k => {
+                if (k === 'name' || k === 'date' || k === 'person' || k === 'np' || k === 'irr') return proj[k] || "未記錄";
+                return proj.inputs[k] || '';
+            });
+            csv += row.join('\t') + '\n';
+        });
+
+        let ok = copyToClipboardSafe(csv);
+        if(ok) {
+            showCustomAlert('匯出成功', '📊 報表表格資料已「複製到剪貼簿」！\n\n請打開您的 Excel，點選第一格後直接按下「貼上」即可。');
+        } else {
+            showCustomAlert('錯誤', '❌ 複製失敗。');
+        }
+    }
+
+    // 🧮 核心財務引擎
+    function calculateIRR(cashFlows) {
+        if (!cashFlows || cashFlows.length === 0) return 0;
+        let hasPositive = false; let hasNegative = false;
+        for (let c of cashFlows) { if (c > 0) hasPositive = true; if (c < 0) hasNegative = true; }
+        if (!hasPositive || !hasNegative) return 0;
+        let min = -0.99999; let max = 1000.0; let guess = 0;
+        for (let i = 0; i < 1000; i++) {
+            guess = (min + max) / 2;
+            let npv = 0;
+            for (let t = 0; t < cashFlows.length; t++) npv += cashFlows[t] / Math.pow(1 + guess, t);
+            if (Math.abs(npv) < 1e-6) break;
+            if (npv > 0) min = guess; else max = guess;
+        }
+        return guess; 
+    }
+
+    function calculateMetrics(currentLandPrice, currentHousePrice, p) {
+        let landAreaM2 = p.landArea > 0 ? (p.landArea / 0.3025) : 0;
+        let baseFloorAreaM2 = landAreaM2 * (p.far / 100);
+        let allowableBuildAreaM2 = landAreaM2 * (p.bcr / 100); 
+        let volTransferAreaM2 = baseFloorAreaM2 * (p.volTransferPct / 100); 
+        
+        let openSpaceAreaM2 = baseFloorAreaM2 * (p.openSpacePct / 100);
+        let scheduleAreaM2 = baseFloorAreaM2 * (p.schedulePct / 100);
+        let scaleAreaM2 = baseFloorAreaM2 * (p.scalePct / 100);
+        let oldDangerAreaM2 = baseFloorAreaM2 * (p.oldDangerPct / 100);
+        let bonusVolAreaM2 = openSpaceAreaM2 + scheduleAreaM2 + scaleAreaM2 + oldDangerAreaM2; 
+        
+        let allowableVolAreaM2 = baseFloorAreaM2 + bonusVolAreaM2 + volTransferAreaM2; 
+        let equipRoomAreaM2 = (baseFloorAreaM2 + volTransferAreaM2 + bonusVolAreaM2) * 0.15; 
+        let stairHallAreaM2 = (baseFloorAreaM2 + volTransferAreaM2 + bonusVolAreaM2 + equipRoomAreaM2) / 0.95 * 0.07; 
+        let roofProjAreaM2 = allowableBuildAreaM2 * 0.15 * 3 * 0.50; 
+        let basementAreaM2 = landAreaM2 * (p.excavationRate / 100) * p.ugFloors; 
+        
+        let balconyAreaM2 = (allowableVolAreaM2 + equipRoomAreaM2 + stairHallAreaM2) * 0.08; 
+        let aboveGroundSalesAreaM2 = allowableVolAreaM2 + stairHallAreaM2 + equipRoomAreaM2 + roofProjAreaM2; 
+        
+        let tcaM2 = basementAreaM2 + aboveGroundSalesAreaM2; 
+        let tsaM2 = tcaM2 + balconyAreaM2; 
+        
+        let tcaPing = tcaM2 * 0.3025;
+        let tsaPing = tsaM2 * 0.3025;
+        
+        let parkingSalesAreaPing = p.parkingCount * p.parkingEfficiency;
+        let bsaPing = tsaPing - parkingSalesAreaPing; 
+        let houseAreaPing = bsaPing - p.shopArea; 
+        
+        let totalEr = p.landArea > 0 ? (tsaPing / p.landArea) : 0; 
+        let bsaEr = p.landArea > 0 ? (bsaPing / p.landArea) : 0; 
+
+        let houseRev = houseAreaPing * currentHousePrice;
+        let shopRev = p.shopArea * p.shopPrice;
+        let parkRev = p.parkingCount * p.parkingPrice;
+        let totalRev = houseRev + shopRev + parkRev;
+
+        let landTotal = p.landArea * currentLandPrice;
+        let buildTotal = tcaPing * p.buildCost;
+        let demolitionCost = p.landArea * p.demolitionUnitPrice;               
+        let landCommission = landTotal * (p.landCommissionRate / 100);         
+        let designFee = tcaPing * 4.3 * (p.designFeeRate / 100);                  
+        let salesAgencyFee = totalRev * (p.salesAgencyRate / 100);            
+        let mgmtFee = totalRev * (p.mgmtFeeRate / 100); 
+        let volTransferCost = landAreaM2 * p.assessedValue * (p.volTransferPct / 100) * (p.volPurchaseRate / 100) / 10000; 
+
+        let softCosts = demolitionCost + landCommission + designFee + salesAgencyFee + mgmtFee + volTransferCost;
+
+        let totalM = parseInt(p.totalMonths);            
+        let startM = parseInt(p.startMonth);      
+        let buildLoanMonths = parseInt(p.buildLoanMonths); 
+        let totalConstM = parseInt(p.totalConstMonths) || 1;     
+        if(totalM <= 0) totalM = 1;
+
+        let landLoanPreAmt = landTotal * (p.landLoanPrePct / 100);
+        let landLoanPostAmt = landTotal * (p.landLoanPostPct / 100);
+        let buildLoanAmt = buildTotal * (p.buildLoanPct / 100);
+        let buildEquity = buildTotal - buildLoanAmt;
+
+        let volMonths = totalM >= 6 ? (totalM - 6 + 1) : 0;
+        let monthlyVolCost = volMonths > 0 ? (volTransferCost / volMonths) : 0;
+
+        let totalLandInt = 0, totalBuildInt = 0, totalVolInt = 0;
+        let curBuildLoanBal = 0;
+        let monthlyBuildDraw = buildLoanMonths > 0 ? (buildLoanAmt / buildLoanMonths) : 0;
+        
+        for (let m = 1; m <= totalM; m++) {
+            let curLandLoanAmt = m < startM ? landLoanPreAmt : landLoanPostAmt;
+            totalLandInt += curLandLoanAmt * (p.landLoanRate / 100 / 12);
+            
+            if (m >= 6 && volMonths > 0) {
+                let curVolPct = m < startM ? p.landLoanPrePct : p.landLoanPostPct;
+                let cumulativeVolCost = (m - 6 + 1) * monthlyVolCost;
+                let targetVolLoanBal = cumulativeVolCost * (curVolPct / 100);
+                totalVolInt += targetVolLoanBal * (p.landLoanRate / 100 / 12);
+            }
+            
+            if (m >= startM && m <= totalM) curBuildLoanBal += monthlyBuildDraw;
+            if (m >= startM) totalBuildInt += curBuildLoanBal * (p.buildLoanRate / 100 / 12);
+        }
+        
+        let totalInterest = totalLandInt + totalBuildInt + totalVolInt;
+        let totalCost = landTotal + buildTotal + softCosts + p.calcLandTax + totalInterest;
+        
+        let preTaxProfit = totalRev - totalCost;
+        let incomeTax = preTaxProfit > 0 ? preTaxProfit * (p.incomeTaxRate / 100) : 0;
+        let undistributedTax = preTaxProfit > 0 ? (preTaxProfit - incomeTax) * (p.undistributedTaxRate / 100) : 0;
+        let tax = incomeTax + undistributedTax;
+        
+        let netProfit = preTaxProfit - tax;
+        let netProfitPct = totalRev > 0 ? (netProfit / totalRev) * 100 : 0;
+
+        let cashFlowsPreTax = [];
+        let landEquityMonth0 = landTotal - landLoanPreAmt;
+        cashFlowsPreTax.push(-(landEquityMonth0 + landCommission + demolitionCost));
+
+        let monthlyMgmt = mgmtFee / totalM;
+        let monthlyBuildEq = buildLoanMonths > 0 ? (buildEquity / buildLoanMonths) : 0;
+        let salesStartPct = 0.2; let salesEndPct = 0.8;     
+        let pStartRate = 0.1; let pMidRate = 0.1; let pEndRate = 0.8;     
+        let constEndMonth = startM + totalConstM - 1;
+        let simBuildLoanBal = 0, prevVolLoanBalCF = 0;
+
+        for (let m = 1; m <= totalM; m++) {
+            let flow = 0;
+            flow -= monthlyMgmt;
+            
+            let curLandLoanAmt = m < startM ? landLoanPreAmt : landLoanPostAmt;
+            flow -= (curLandLoanAmt * (p.landLoanRate / 100 / 12));
+            if (m === startM) flow += (landLoanPostAmt - landLoanPreAmt);
+
+            if (m >= 6 && volMonths > 0) {
+                let curVolPct = m < startM ? p.landLoanPrePct : p.landLoanPostPct;
+                let cumulativeVolCost = (m - 6 + 1) * monthlyVolCost;
+                let targetVolLoanBal = cumulativeVolCost * (curVolPct / 100);
+                let drawThisMonth = targetVolLoanBal - prevVolLoanBalCF;
+                let equityThisMonth = monthlyVolCost - drawThisMonth;
+                flow -= equityThisMonth; 
+                flow -= (targetVolLoanBal * (p.landLoanRate / 100 / 12)); 
+                prevVolLoanBalCF = targetVolLoanBal;
+            }
+
+            if (m >= startM && m <= totalM) { flow -= monthlyBuildEq; simBuildLoanBal += monthlyBuildDraw; }
+            if (m >= startM) { flow -= (simBuildLoanBal * (p.buildLoanRate / 100 / 12)); }
+
+            let currentMonthRevProportion = 0;
+            if (m === startM) currentMonthRevProportion += salesStartPct * pStartRate; 
+            if (m >= startM && m <= constEndMonth) currentMonthRevProportion += (salesStartPct * pMidRate) / totalConstM; 
+            if (m === totalM) {
+                currentMonthRevProportion += salesStartPct * pEndRate;
+                currentMonthRevProportion += salesEndPct; 
+            }
+
+            if (currentMonthRevProportion > 0) {
+                flow += (totalRev * currentMonthRevProportion);
+                flow -= (salesAgencyFee * currentMonthRevProportion); 
+                flow -= (p.calcLandTax * currentMonthRevProportion);  
+            }
+            
+            if (m === startM) flow -= (designFee * 0.20);
+            if (m === constEndMonth) flow -= (designFee * 0.80);
+
+            if (m === totalM) { 
+                flow -= (landLoanPostAmt + prevVolLoanBalCF + buildLoanAmt); 
+            }
+            cashFlowsPreTax.push(flow);
+        }
+
+        let irrPreTax = calculateIRR(cashFlowsPreTax) * 12 * 100;
+        
+        let cashFlowsAfterTax = [...cashFlowsPreTax];
+        cashFlowsAfterTax[cashFlowsAfterTax.length - 1] -= tax; 
+        let irrAfterTax = calculateIRR(cashFlowsAfterTax) * 12 * 100;
+
+        return {
+            tcaPing, tsaPing, tcaM2, tsaM2, houseAreaPing, totalEr, bsaEr, parkingSalesAreaPing,
+            houseRev, shopRev, parkRev, totalRev, landTotal, buildTotal, volTransferCost,
+            demolitionCost, landCommission, designFee, salesAgencyFee, mgmtFee,
+            totalLandInt, totalBuildInt, totalVolInt, totalCost, preTaxProfit, 
+            tax, incomeTax, undistributedTax, netProfit, netProfitPct, irrPreTax, irrAfterTax,
+            areas: { landAreaM2, baseFloorAreaM2, allowableBuildAreaM2, volTransferAreaM2, bonusVolAreaM2, allowableVolAreaM2, equipRoomAreaM2, stairHallAreaM2, roofProjAreaM2, basementAreaM2, balconyAreaM2, aboveGroundSalesAreaM2 }
+        };
+    }
+
+    window.calculate = function() {
+        try {
+            let agFloors = getVal('agFloors'); let ugFloors = getVal('ugFloors');
+            let totalConstMonths = agFloors + (ugFloors * 3) + 5; let totalMonths = totalConstMonths + 18; 
+            let buildLoanMonths = totalConstMonths + 6; let startMonth = totalMonths - buildLoanMonths + 1;
+            
+            document.getElementById('totalConstDisplay').value = totalConstMonths;
+            document.getElementById('totalMonthsDisplay').value = totalMonths;
+            document.getElementById('startMonthDisplay').value = startMonth;
+            document.getElementById('buildLoanMonthsDisplay').value = buildLoanMonths;
+
+            let params = {
+                landArea: getVal('landArea'), bcr: getVal('bcr'), far: getVal('far'), 
+                ugFloors: ugFloors, excavationRate: getVal('excavationRate'),
+                volTransferPct: getVal('volTransferPct'), openSpacePct: getVal('openSpacePct'), schedulePct: getVal('schedulePct'), scalePct: getVal('scalePct'), oldDangerPct: getVal('oldDangerPct'),
+                totalMonths: totalMonths, startMonth: startMonth, buildLoanMonths: buildLoanMonths, totalConstMonths: totalConstMonths,
+                shopArea: getVal('shopArea'), shopPrice: getVal('shopPrice'),
+                parkingDivisor: getVal('parkingDivisor'), parkingEfficiency: getVal('parkingEfficiency'), parkingPrice: getVal('parkingPrice'),
+                buildCost: getVal('buildCost'), demolitionUnitPrice: getVal('demolitionUnitPrice'), landCommissionRate: getVal('landCommissionRate'),
+                designFeeRate: 5, salesAgencyRate: getVal('salesAgencyRate'), mgmtFeeRate: getVal('mgmtFeeRate'), 
+                assessedValue: getVal('assessedValue'), volPurchaseRate: getVal('volPurchaseRate'),
+                priceIndex: 102, assessedIncrease: 5, incomeTaxRate: getVal('incomeTaxRate'), undistributedTaxRate: getVal('undistributedTaxRate'),
+                landLoanPrePct: getVal('landLoanPrePct'), landLoanPostPct: getVal('landLoanPostPct'), landLoanRate: getVal('landLoanRate'),
+                buildLoanPct: getVal('buildLoanPct'), buildLoanRate: getVal('buildLoanRate')
+            };
+
+            document.getElementById('totalBonusPct').value = (params.openSpacePct + params.schedulePct + params.scalePct + params.oldDangerPct).toFixed(4);
+
+            let areaM2 = params.landArea > 0 ? (params.landArea / 0.3025) : 0; 
+            let basementM2 = areaM2 * (params.excavationRate / 100) * params.ugFloors;
+            let parkingCount = params.parkingDivisor > 0 ? Math.floor((basementM2 * 0.3025) / params.parkingDivisor) : 0;
+            params.parkingCount = parkingCount; document.getElementById('parkingCount').value = parkingCount;
+
+            let rawHoldingYears = params.totalMonths > 0 ? (params.totalMonths / 12) : 0;
+            let holdingYearsCalc = Math.floor(rawHoldingYears); 
+            if (holdingYearsCalc <= 0) {
+                params.calcLandTax = 0;
+            } else {
+                let futureAssessed = params.assessedValue * Math.pow(1 + (params.assessedIncrease / 100), holdingYearsCalc);
+                let adjustedBase = params.assessedValue * (params.priceIndex / 100);
+                let landTaxIncrement = (futureAssessed - adjustedBase) * areaM2;
+                params.calcLandTax = landTaxIncrement > 0 ? (landTaxIncrement * 0.20) / 10000 : 0; 
+            }
+            
+            let base = calculateMetrics(getVal('landPrice'), getVal('housePrice'), params);
+            
+            document.getElementById('resTcaPing').innerText = fmt(base.tcaPing) + ' 坪';
+            document.getElementById('resTcaM2').innerText = fmt(base.tcaM2) + ' ㎡';
+            document.getElementById('resTsaPing').innerText = fmt(base.tsaPing) + ' 坪';
+            document.getElementById('resTsaM2').innerText = fmt(base.tsaM2) + ' ㎡';
+            document.getElementById('resHouseArea').innerText = fmt(base.houseAreaPing) + ' 坪';
+            document.getElementById('resParkArea').innerText = '車位: ' + fmt(base.parkingSalesAreaPing) + ' 坪';
+            
+            document.getElementById('resEr').innerText = base.totalEr.toFixed(2);
+            document.getElementById('resBsaEr').innerText = base.bsaEr.toFixed(2);
+            document.getElementById('resTotalRev').innerText = fmtYi(base.totalRev) + ' 億';
+            document.getElementById('resTotalCost').innerText = fmtYi(base.totalCost) + ' 億';
+
+            let dHTML = `
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; font-family: monospace; font-size: 14px; padding-bottom: 10px;">
+                <div style="background:#fff; padding:15px; border-radius:8px; border:1px solid var(--border);">
+                    <h4 style="margin-top:0; color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:6px;">📐 1. 基準面積推算 (㎡)</h4>
+                    土地面積: ${fmt(base.areas.landAreaM2)} ㎡<br>基準樓地板: ${fmt(base.areas.baseFloorAreaM2)}<br>允建建築面積: ${fmt(base.areas.allowableBuildAreaM2)}<br>
+                    容移獎勵: ${fmt(base.areas.volTransferAreaM2)}<br>各項獎勵: ${fmt(base.areas.bonusVolAreaM2)}<br>允建容積面積: ${fmt(base.areas.allowableVolAreaM2)}<br>
+                    設備梯間: ${fmt(base.areas.equipRoomAreaM2)}<br>梯廳面積: ${fmt(base.areas.stairHallAreaM2)}<br>屋突面積: ${fmt(base.areas.roofProjAreaM2)}<br>
+                    地下室面積: ${fmt(base.areas.basementAreaM2)}<br>陽台面積: ${fmt(base.areas.balconyAreaM2)}<br>地上允建售坪: ${fmt(base.areas.aboveGroundSalesAreaM2)}<br>
+                </div>
+                <div style="background:#fff; padding:15px; border-radius:8px; border:1px solid var(--border);">
+                    <h4 style="margin-top:0; color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:6px;">💰 2. 營收與成本明細 (萬)</h4>
+                    <b style="color:var(--primary)">總銷合計: ${fmt(base.totalRev)}</b><br><br>
+                    土地總價: ${fmt(base.landTotal)}<br>營造本金: ${fmt(base.buildTotal)}<br><b style="color:var(--alert-text)">容移總額: ${fmt(base.volTransferCost)}</b><br>
+                    土地佣金: ${fmt(base.landCommission)}<br>設計費用: ${fmt(base.designFee)}<br>代銷費用: ${fmt(base.salesAgencyFee)}<br>管理費用: ${fmt(base.mgmtFee)}<br>
+                </div>
+                <div style="background:#fff; padding:15px; border-radius:8px; border:1px solid var(--border);">
+                    <h4 style="margin-top:0; color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:6px;">🏦 3. 銷售進度與結算 (萬)</h4>
+                    土融利息: ${fmt(base.totalLandInt)}<br>建融利息: ${fmt(base.totalBuildInt)}<br><b style="color:var(--alert-text)">容移利息: ${fmt(base.totalVolInt)}</b><br>
+                    土增稅(第${holdingYearsCalc}年): ${fmt(params.calcLandTax)}<br><b style="color:var(--primary)">總成本合計: ${fmt(base.totalCost)}</b><br><br>
+                    營所稅(${params.incomeTaxRate}%): ${fmt(base.incomeTax)}<br>未分配稅(${params.undistributedTaxRate}%): ${fmt(base.undistributedTax)}<br>
+                    <b style="color:#059669; font-size:1.05rem;">稅後淨利: ${fmt(base.netProfit)} (NP: ${base.netProfitPct.toFixed(2)}%)</b><br>
+                    <b style="color:#2563eb; font-size:1.05rem;">稅前 IRR: ${base.irrPreTax.toFixed(2)}%</b><br>
+                    <b style="color:#0f172a; font-size:0.9rem;">(稅後 IRR: ${base.irrAfterTax.toFixed(2)}%)</b>
+                </div>
+            </div>`;
+            document.getElementById('calcDetails').innerHTML = dHTML;
+
+            let theadTr = document.getElementById('matrixHeadTr'); let tbody = document.getElementById('matrixBody');
+            theadTr.innerHTML = '<th>房價 \\ 土價<br><span style="font-size:0.8rem;font-weight:normal">(萬)</span></th>'; tbody.innerHTML = '';
+            let lPrices = [];
+            for (let j = -2; j <= 2; j++) { let p = getVal('landPrice') + (j * getVal('landStep')); lPrices.push(p); theadTr.innerHTML += `<th>${p}</th>`; }
+            for (let i = -2; i <= 2; i++) {
+                let curHouse = getVal('housePrice') + (i * getVal('houseStep'));
+                let tr = document.createElement('tr'); tr.innerHTML = `<th>${curHouse}</th>`;
+                for (let j = 0; j < lPrices.length; j++) {
+                    let m = calculateMetrics(lPrices[j], curHouse, params);
+                    let td = document.createElement('td');
+                    td.innerHTML = `<div class="cell-data">NP: ${m.netProfitPct.toFixed(2)}%</div><div class="cell-sub">IRR: ${m.irrAfterTax.toFixed(2)}%</div>`;
+                    // 🚨 達標條件：淨利率 >= 15% 且 稅後IRR >= 12%
+                    if (m.netProfitPct >= 15.0 && m.irrAfterTax >= 12.0) td.className = 'highlight';
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    window.addEventListener('DOMContentLoaded', window.calculate);
+    setTimeout(window.calculate, 500);
+</script>
+
+</body>
+</html>
