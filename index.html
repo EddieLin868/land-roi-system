@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="土開投報">
-    <title>土地開發投報與敏感性分析 (一鍵PDF版)</title>
+    <title>土地開發投報與敏感性分析 (實體PDF按鈕版)</title>
     <style>
         :root {
             --primary: #0f172a;
@@ -40,12 +40,12 @@
         }
         .custom-modal-box h3 { margin-top: 0; color: #0f172a; font-size: 1.4rem; margin-bottom: 10px; }
         .custom-modal-box p { color: #475569; margin-bottom: 20px; font-size: 1rem; line-height: 1.5; }
-        .custom-modal-box input {
+        .custom-modal-box input, .custom-modal-box textarea {
             width: 100%; padding: 12px; border: 2px solid #cbd5e1; border-radius: 8px;
             font-size: 16px; margin-bottom: 20px; outline: none; transition: all 0.2s; font-family: inherit;
             -webkit-user-select: auto; user-select: auto;
         }
-        .custom-modal-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
+        .custom-modal-box input:focus, .custom-modal-box textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
         .modal-btns { display: flex; gap: 10px; justify-content: center; }
         .btn-modal-cancel { flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
         .btn-modal-confirm { flex: 1; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
@@ -126,8 +126,14 @@
 
         details.detail-logs summary { list-style: none; padding: 15px; background: #f1f5f9; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; color: var(--accent); }
         
-        /* 🚨 純淨報告模式 */
-        .report-mode-banner { display: none; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 15px; border-radius: 12px; margin-bottom: 25px; text-align: center; position: sticky; top: 10px; z-index: 100;}
+        /* 🚨 純淨報告模式橫幅 (新增實體按鈕) */
+        .report-mode-banner { display: none; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center; position: sticky; top: 10px; z-index: 100; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);}
+        .report-mode-banner h3 { margin: 0 0 10px 0; font-size: 1.4rem; }
+        .report-mode-banner p { margin: 0; font-size: 1rem; opacity: 0.9; }
+        .report-mode-btns { display: flex; gap: 15px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+        .btn-print { background: #ffffff; color: #1d4ed8; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 900; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .btn-exit { background: #ef4444; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 900; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+
         body.report-mode { background: #ffffff; }
         body.report-mode .left-panel, body.report-mode .pdf-export-panel, body.report-mode details.detail-logs { display: none !important; }
         body.report-mode .container { display: block; max-width: 1000px; padding: 0; }
@@ -146,7 +152,6 @@
             .print-header { display: block !important; text-align: center; margin-bottom: 30px; padding-top: 0; }
             .print-header h1 { margin: 0; font-size: 22pt; color: #000; border-bottom: 2px solid #000; padding-bottom: 10px; }
             .print-header p { margin: 10px 0 0 0; color: #333; font-size: 14pt; font-weight: bold; }
-            /* 強制背景顏色印出 (Chrome/Safari) */
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .result-box { border: 1px solid #ccc !important; }
             table { border: 1px solid #000 !important; }
@@ -159,7 +164,6 @@
 </head>
 <body>
 
-<!-- 自訂全局彈出視窗 -->
 <div class="custom-modal-overlay" id="customAlert">
     <div class="custom-modal-box">
         <h3 id="customAlertTitle">提示</h3>
@@ -203,7 +207,6 @@
     </div>
 </div>
 
-<!-- 🔑 密碼鎖定畫面 -->
 <div id="login-overlay">
     <div class="login-box">
         <h2>🔒 系統授權登入</h2>
@@ -214,7 +217,6 @@
     </div>
 </div>
 
-<!-- 📂 歷史專案管理畫面 -->
 <div id="history-overlay">
     <div class="history-box">
         <div class="history-header">
@@ -245,12 +247,15 @@
 
 <div class="container" id="main-content" style="filter: blur(8px); pointer-events: none; opacity: 0.5;">
     
-    <div class="report-mode-banner" onclick="toggleReportMode()">
-        <h3>✅ 報表模式已啟動 (點此退出)</h3>
-        <p>請在跳出的視窗選擇「儲存為 PDF」，若未跳出，請使用瀏覽器內建的列印功能。</p>
+    <div class="report-mode-banner" id="reportBanner">
+        <h3>✅ 報表純淨模式已啟動</h3>
+        <p>排版已最佳化！請點擊下方按鈕產出 PDF。</p>
+        <div class="report-mode-btns">
+            <button class="btn-print" onclick="window.print()">🖨️ 產出 PDF 報告</button>
+            <button class="btn-exit" onclick="toggleReportMode()">❌ 退出純淨模式</button>
+        </div>
     </div>
 
-    <!-- 列印標題 -->
     <div style="display:none" class="print-header report-show">
         <h1>土地開發專案 投資效益分析報告</h1>
         <p id="printProjectNameDisplay"></p>
@@ -485,7 +490,7 @@
         <div class="pdf-export-panel">
             <div style="flex: 1;">
                 <h3>💾 專案建檔與產出報告</h3>
-                <p>輸入專案名稱與人員後，系統將自動產生 PDF 報表。</p>
+                <p>儲存後將進入報表模式，可一鍵產生 PDF 供列印或分享。</p>
             </div>
             <div class="btn-panel-wrap">
                 <button class="pdf-btn-main" onclick="triggerSaveProject()">
@@ -557,8 +562,7 @@
                     點擊展開：對帳與財務明細
                 </summary>
                 <div id="calcDetails" style="margin-top: 15px;">
-                    <!-- JS 動態生成內容 -->
-                </div>
+                    </div>
             </details>
         </div>
 
@@ -624,7 +628,7 @@
         if(promptCallback) promptCallback(val);
     }
 
-    // 🔑 密碼檢查
+    // 🔑 密碼檢查 (解鎖功能)
     function checkPassword() {
         const pwd = document.getElementById('sysPwd').value;
         if (pwd === "89369020") {
@@ -744,10 +748,7 @@
                 }
                 window.scrollTo(0, 0);
 
-                // 🚨 延遲 0.5 秒後自動觸發 PDF 產出 / 列印視窗
-                setTimeout(() => {
-                    window.print();
-                }, 500);
+                // 已移除會被瀏覽器阻擋的 setTimeout 列印功能
             });
         });
     }
