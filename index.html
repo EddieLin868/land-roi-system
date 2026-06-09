@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="土開投報">
-    <title>土地開發投報與敏感性分析 (加密升級版)</title>
+    <title>土地開發投報與敏感性分析 (一鍵PDF版)</title>
     <style>
         :root {
             --primary: #0f172a;
@@ -27,52 +27,8 @@
             background-color: var(--bg); color: var(--primary); margin: 0; padding: 10px; font-size: 15px;
             -webkit-text-size-adjust: 100%; -webkit-user-select: none; user-select: none;
         }
-
-        /* ==========================================
-           🚨 全新功能：系統登入鎖定畫面 
-           ========================================== */
-        #login-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #0f172a; /* 深色背景 */
-            z-index: 99999; /* 絕對置頂 */
-            display: flex; justify-content: center; align-items: center;
-        }
-        .login-box {
-            background: #ffffff; padding: 40px 30px; border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-            width: 90%; max-width: 380px; text-align: center;
-        }
-        .login-box h2 {
-            margin-top: 0; color: #0f172a; border: none; padding-bottom: 5px;
-            font-size: 1.8rem; justify-content: center;
-        }
-        .login-box p {
-            color: #64748b; margin-bottom: 25px; font-size: 1rem; font-weight: bold;
-        }
-        .login-box input {
-            width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 8px;
-            text-align: center; letter-spacing: 5px; margin-bottom: 15px;
-            transition: all 0.2s; font-size: 16px; font-weight: 900;
-            -webkit-user-select: auto; user-select: auto;
-        }
-        .login-box input:focus {
-            border-color: var(--accent); outline: none;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-        }
-        .login-btn {
-            width: 100%; padding: 15px; background: var(--accent); color: white;
-            border: none; border-radius: 8px; font-size: 1.15rem; font-weight: 900;
-            cursor: pointer; transition: background 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
-        }
-        .login-btn:hover { background: #1d4ed8; }
-        .login-error {
-            color: #ef4444; font-size: 0.95rem; margin-top: 15px;
-            font-weight: 900; display: none;
-        }
-        /* ========================================== */
         
-        /* 🚨 共用彈出遮罩 (自訂對話框) */
+        /* 🚨 共用彈出遮罩 */
         .custom-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(15, 23, 42, 0.9); z-index: 999999;
@@ -95,6 +51,14 @@
         .btn-modal-confirm { flex: 1; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
         .btn-modal-confirm.danger { background: #ef4444; }
 
+        /* 🚨 登入畫面 */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #0f172a; z-index: 99999; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: #ffffff; padding: 40px 30px; border-radius: 16px; width: 90%; max-width: 380px; text-align: center; }
+        .login-box h2 { margin-top: 0; color: #0f172a; font-size: 1.8rem; }
+        .login-box input { width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; letter-spacing: 5px; margin-bottom: 15px; font-size: 16px; font-weight: 900; -webkit-user-select: auto; user-select: auto; }
+        .login-btn { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1.15rem; font-weight: 900; cursor: pointer; }
+        .login-error { color: #ef4444; font-size: 0.95rem; margin-top: 15px; font-weight: 900; display: none; }
+
         /* 📂 歷史專案紀錄畫面 */
         #history-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.9); z-index: 99998; display: none; justify-content: center; align-items: center; }
         .history-box { background: #ffffff; padding: 25px; border-radius: 16px; width: 95%; max-width: 650px; max-height: 90vh; display: flex; flex-direction: column; }
@@ -109,8 +73,9 @@
         .btn-load { background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-del { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
-        .backup-controls { display: flex; justify-content: center; margin-top: 5px; }
-        .btn-excel { background: #059669; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+        .backup-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 5px; }
+        .btn-backup { background: #334155; color: white; border: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 5px;}
+        .btn-excel { background: #059669; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 5px; }
 
         /* 一般佈局 */
         .container { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1750px; margin: 0 auto; }
@@ -172,22 +137,29 @@
         body.report-mode .print-header h1 { margin: 0; font-size: 20pt; color: #0f172a; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
         body.report-mode .print-header p { margin: 10px 0 0 0; color: #475569; font-size: 12pt; }
         
+        /* 🚨 PDF 列印專屬優化設定 */
+        @media print {
+            .report-mode-banner, .left-panel, .pdf-export-panel, .action-btn { display: none !important; }
+            body { background: #ffffff !important; margin: 0; padding: 0; font-size: 12pt; }
+            .container { display: block !important; max-width: 100% !important; padding: 0 !important; gap: 0 !important;}
+            .card { box-shadow: none !important; border: none !important; padding: 0 0 20px 0 !important; margin-bottom: 0 !important; page-break-inside: avoid; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 30px; padding-top: 0; }
+            .print-header h1 { margin: 0; font-size: 22pt; color: #000; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            .print-header p { margin: 10px 0 0 0; color: #333; font-size: 14pt; font-weight: bold; }
+            /* 強制背景顏色印出 (Chrome/Safari) */
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .result-box { border: 1px solid #ccc !important; }
+            table { border: 1px solid #000 !important; }
+            th, td { border: 1px solid #000 !important; }
+        }
+
         /* 隱藏的工具列 */
         #hidden-clipboard { position: absolute; left: -9999px; top: -9999px; }
     </style>
 </head>
 <body>
 
-<div id="login-overlay">
-    <div class="login-box">
-        <h2>🔒 系統授權登入</h2>
-        <p>土地開發投報與敏感性分析系統</p>
-        <input type="password" id="sysPwd" placeholder="請輸入授權碼">
-        <button class="login-btn" onclick="checkPassword()">進入系統</button>
-        <div id="loginError" class="login-error">授權碼錯誤，請重新輸入！</div>
-    </div>
-</div>
-
+<!-- 自訂全局彈出視窗 -->
 <div class="custom-modal-overlay" id="customAlert">
     <div class="custom-modal-box">
         <h3 id="customAlertTitle">提示</h3>
@@ -219,6 +191,30 @@
     </div>
 </div>
 
+<div class="custom-modal-overlay" id="customTextareaPrompt">
+    <div class="custom-modal-box" style="max-width: 500px;">
+        <h3 id="customTextareaTitle">請貼上備份代碼</h3>
+        <p id="customTextareaMsg"></p>
+        <textarea id="customTextareaInput" rows="6" style="width:100%; padding:10px; border:2px solid #cbd5e1; border-radius:8px; outline:none; resize:vertical; font-family:monospace;" placeholder="在此貼上您複製的 JSON 代碼..."></textarea>
+        <div class="modal-btns">
+            <button class="btn-modal-cancel" onclick="closeCustomTextarea(null)">取消</button>
+            <button class="btn-modal-confirm" onclick="closeCustomTextarea(document.getElementById('customTextareaInput').value)">開始還原</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🔑 密碼鎖定畫面 -->
+<div id="login-overlay">
+    <div class="login-box">
+        <h2>🔒 系統授權登入</h2>
+        <p>土地開發投報與敏感性分析系統</p>
+        <input type="password" id="sysPwd" placeholder="請輸入授權碼">
+        <button class="login-btn" onclick="checkPassword()">進入系統</button>
+        <div id="loginError" class="login-error">授權碼錯誤，請重新輸入！</div>
+    </div>
+</div>
+
+<!-- 📂 歷史專案管理畫面 -->
 <div id="history-overlay">
     <div class="history-box">
         <div class="history-header">
@@ -229,11 +225,18 @@
         
         <div style="border-top: 2px dashed var(--border); padding-top: 15px;">
             <div class="backup-controls">
+                <button class="btn-backup" onclick="exportBackupJSON()">
+                    📦 複製備份
+                </button>
+                <button class="btn-backup" onclick="importBackupJSON()">
+                    📥 貼上還原
+                </button>
                 <button class="btn-excel" onclick="exportToExcel()">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    匯出 Excel 報表 (複製表格)
+                    匯出報表
                 </button>
             </div>
+            <p style="text-align:center; font-size:0.8rem; color:var(--secondary); margin-top:10px;">⚠️ Google Sites 無法永久儲存資料，關閉網頁前請務必【複製備份】。</p>
         </div>
     </div>
 </div>
@@ -244,9 +247,10 @@
     
     <div class="report-mode-banner" onclick="toggleReportMode()">
         <h3>✅ 報表模式已啟動 (點此退出)</h3>
-        <p>請使用手機截圖功能 ➡️ 點選預覽 ➡️ 選「整頁」 ➡️ 儲存為 PDF</p>
+        <p>請在跳出的視窗選擇「儲存為 PDF」，若未跳出，請使用瀏覽器內建的列印功能。</p>
     </div>
 
+    <!-- 列印標題 -->
     <div style="display:none" class="print-header report-show">
         <h1>土地開發專案 投資效益分析報告</h1>
         <p id="printProjectNameDisplay"></p>
@@ -480,17 +484,17 @@
         
         <div class="pdf-export-panel">
             <div style="flex: 1;">
-                <h3>💾 專案建檔與匯出</h3>
-                <p>因平台限制，請儲存專案後進入<b>「純淨模式」</b>使用手機整頁截圖 PDF。</p>
+                <h3>💾 專案建檔與產出報告</h3>
+                <p>輸入專案名稱與人員後，系統將自動產生 PDF 報表。</p>
             </div>
             <div class="btn-panel-wrap">
                 <button class="pdf-btn-main" onclick="triggerSaveProject()">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                    儲存專案 ＆ 產生報告
+                    儲存專案 ＆ 產生 PDF 報表
                 </button>
                 <button class="pdf-btn-main btn-history" onclick="openHistory()">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                    📂 歷史專案與匯出
+                    📂 歷史專案與還原
                 </button>
             </div>
         </div>
@@ -553,7 +557,8 @@
                     點擊展開：對帳與財務明細
                 </summary>
                 <div id="calcDetails" style="margin-top: 15px;">
-                    </div>
+                    <!-- JS 動態生成內容 -->
+                </div>
             </details>
         </div>
 
@@ -607,17 +612,27 @@
         if(promptCallback) promptCallback(val);
     }
 
-    // 🔑 密碼檢查 (解鎖功能)
+    function showCustomTextarea(title, msg, callback) {
+        document.getElementById('customTextareaTitle').innerText = title;
+        document.getElementById('customTextareaMsg').innerText = msg;
+        document.getElementById('customTextareaInput').value = '';
+        promptCallback = callback;
+        document.getElementById('customTextareaPrompt').style.display = 'flex';
+    }
+    function closeCustomTextarea(val) {
+        document.getElementById('customTextareaPrompt').style.display = 'none';
+        if(promptCallback) promptCallback(val);
+    }
+
+    // 🔑 密碼檢查
     function checkPassword() {
         const pwd = document.getElementById('sysPwd').value;
         if (pwd === "89369020") {
-            // 密碼正確：隱藏登入遮罩，並解除主內容的模糊與點擊限制
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('main-content').style.filter = 'none';
             document.getElementById('main-content').style.pointerEvents = 'auto';
             document.getElementById('main-content').style.opacity = '1';
         } else {
-            // 密碼錯誤：顯示錯誤訊息，清空輸入框
             document.getElementById('loginError').style.display = 'block';
             document.getElementById('sysPwd').value = '';
         }
@@ -646,7 +661,7 @@
         }
     }
 
-    // 💾 專案管理
+    // 💾 專案管理與一鍵 PDF 生成
     const INPUT_FIELDS = [
         'landArea', 'landPrice', 'bcr', 'far', 'agFloors', 'ugFloors', 'excavationRate',
         'volTransferPct', 'openSpacePct', 'schedulePct', 'scalePct', 'oldDangerPct',
@@ -723,9 +738,50 @@
                 document.getElementById('printProjectNameDisplay').innerText = `專案名稱：${projectData.name} ｜ 專案人員：${projectData.person}`;
                 document.getElementById('printDateDisplay').innerText = "產出日期：" + today.toLocaleDateString('zh-TW');
                 
-                window.toggleReportMode();
+                // 啟動報表模式
+                if (!document.body.classList.contains('report-mode')) {
+                    window.toggleReportMode();
+                }
                 window.scrollTo(0, 0);
+
+                // 🚨 延遲 0.5 秒後自動觸發 PDF 產出 / 列印視窗
+                setTimeout(() => {
+                    window.print();
+                }, 500);
             });
+        });
+    }
+
+    // 🚀 備份與還原
+    window.exportBackupJSON = function() {
+        let data = localStorage.getItem('landDevProjects') || '[]';
+        if (data === '[]') return showCustomAlert('提示', '目前沒有任何專案可供備份。');
+        
+        let ok = copyToClipboardSafe(data);
+        if(ok) {
+            showCustomAlert('備份成功', '✅ 所有專案備份代碼已「複製到剪貼簿」！\n\n請打開您的記事本、LINE 或 Email，將這串代碼「貼上」並妥善保存。下次開啟網頁才能還原！');
+        } else {
+            showCustomAlert('錯誤', '❌ 複製失敗。');
+        }
+    }
+
+    window.importBackupJSON = function() {
+        showCustomTextarea('📥 還原專案備份', '請在下方貼上您之前備份的一整串代碼：', function(jsonStr) {
+            if(!jsonStr || jsonStr.trim() === '') return;
+            try {
+                let imported = JSON.parse(jsonStr);
+                if (Array.isArray(imported)) {
+                    let current = JSON.parse(localStorage.getItem('landDevProjects') || '[]');
+                    let merged = imported.concat(current);
+                    localStorage.setItem('landDevProjects', JSON.stringify(merged));
+                    showCustomAlert('還原成功', '✅ 專案已成功合併並還原！');
+                    window.openHistory(); 
+                } else {
+                    showCustomAlert('錯誤', '❌ 代碼格式錯誤，請確認您貼上的是完整的備份代碼。');
+                }
+            } catch(err) {
+                showCustomAlert('錯誤', '❌ 代碼解析失敗，請檢查內容是否完整。');
+            }
         });
     }
 
@@ -1092,7 +1148,6 @@
                     let m = calculateMetrics(lPrices[j], curHouse, params);
                     let td = document.createElement('td');
                     td.innerHTML = `<div class="cell-data">NP: ${m.netProfitPct.toFixed(2)}%</div><div class="cell-sub">IRR: ${m.irrAfterTax.toFixed(2)}%</div>`;
-                    // 🚨 達標條件：淨利率 >= 15% 且 稅後IRR >= 12%
                     if (m.netProfitPct >= 15.0 && m.irrAfterTax >= 12.0) td.className = 'highlight';
                     tr.appendChild(td);
                 }
